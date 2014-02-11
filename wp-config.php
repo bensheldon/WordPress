@@ -1,40 +1,49 @@
 <?php
-
-// Don't show deprecations
-error_reporting(E_ALL ^ E_DEPRECATED);
-
-if (isset($_SERVER['PANTHEON_ENVIRONMENT'])) {
-  // Tweak #1
-  // Load database settings from PRESSFLOW_SETTINGS environment variable...
-  $pressflow_settings = json_decode($_SERVER['PRESSFLOW_SETTINGS'], TRUE);
-  $database_settings = $pressflow_settings['databases']['default']['default'];
-  $wp_upload_url = "sites/default/files";
-
-  /** MySQL configs */
-  define('DB_NAME', $database_settings['database']);
-  define('DB_USER', $database_settings['username']);
-  define('DB_PASSWORD', $database_settings['password']);
-  define('DB_HOST', $database_settings['host'] . ":" . $database_settings['port']);
+// Pantheon-specific configuration.
+// NOTE: the $_ENV values are automatically part of the runtime container.
+if (isset($_ENV['PANTHEON_ENVIRONMENT'])) {
+  define('DB_NAME', $_ENV['DB_NAME']);
+  define('DB_USER', $_ENV['DB_USER']);
+  define('DB_PASSWORD', $_ENV['DB_PASSWORD']);
+  define('DB_HOST', $_ENV['DB_HOST'] . ':' . $_ENV['DB_PORT']);
   define('DB_CHARSET', 'utf8');
   define('DB_COLLATE', '');
+  define('UPLOADS', $_ENV['FILEMOUNT']);
+  define('AUTH_KEY', $_ENV['AUTH_KEY']);
+  define('SECURE_AUTH_KEY', $_ENV['SECURE_AUTH_KEY']);
+  define('LOGGED_IN_KEY', $_ENV['LOGGED_IN_KEY']);
+  define('NONCE_KEY', $_ENV['NONCE_KEY']);
+  define('AUTH_SALT', $_ENV['AUTH_SALT']);
+  define('SECURE_AUTH_SALT', $_ENV['SECURE_AUTH_SALT']);
+  define('LOGGED_IN_SALT', $_ENV['LOGGED_IN_SALT']);
+  define('NONCE_SALT', $_ENV['NONCE_SALT']);
 
-  // Tweak #2
-  // Sneak in wordpress cookies as Drupal cookies (change prefix from wordpress_ to SESS)
-  $salt = md5($_SERVER['PRESSFLOW_SETTINGS']);
+  // Additional tweaks to run well on Pantheon
+  // Secure cookie names
+  $salt = md5($_ENV['AUTH_KEY']);
   define('USER_COOKIE', 'SESSuser' . $salt);
   define('PASS_COOKIE', 'SESSpass' . $salt);
   define('AUTH_COOKIE', 'SESSauth' . $salt);
   define('SECURE_AUTH_COOKIE', 'SESSsecure' . $salt);
   define('LOGGED_IN_COOKIE', 'SESSloggedin' . $salt);
   define('TEST_COOKIE', 'SESStest' . $salt);
-  
-  // Tweak #3
-  // Other constants that need to be dynamic for pantheon */
-  define('WP_HOME', 'http://' . $_SERVER['HTTP_HOST']);
-  define('WP_SITEURL', 'http://' . $_SERVER['HTTP_HOST']);
-  define('UPLOADS', $wp_upload_url);  // @TODO Set this to be the binding path
-} else {
-  //These setting will be used on environments other than Pantheon (ie, your localhost)
+  if (isset($_SERVER['HTTP_HOST'])) {
+    define('WP_HOME', 'http://' . $_SERVER['HTTP_HOST']);
+    define('WP_SITEURL', 'http://' . $_SERVER['HTTP_HOST']);
+  }
+  // Don't show deprecations
+  error_reporting(E_ALL ^ E_DEPRECATED);
+}
+
+// If you would like to keep a local development configuration file, use
+// 'wp-config-local.php'. This will be ignored by git and never pushed
+// up to Pantheon.
+if (!isset($_ENV['PANTHEON_ENVIRONMENT']) &&
+    file_exists('wp-config-local.php')) {
+  include_once('wp-config-local.php');
+}
+elseif (!isset($_ENV['PANTHEON_ENVIRONMENT'])) {
+  // Otherwise, code within this block will be used in non-Pantheon environments.
   define('DB_NAME', 'local_db_database');
   /** MySQL database username */
   define('DB_USER', 'local_db_username');
@@ -46,17 +55,19 @@ if (isset($_SERVER['PANTHEON_ENVIRONMENT'])) {
   define('DB_CHARSET', 'utf8');
   /** The Database Collate type. Don't change this if in doubt. */
   define('DB_COLLATE', '');
+  define('AUTH_KEY', 'unique key here');
+  define('SECURE_AUTH_KEY', 'unique key here');
+  define('LOGGED_IN_KEY', 'unique key here');
+  define('NONCE_KEY', 'unique key here');
+  define('AUTH_SALT', 'unique key here');
+  define('SECURE_AUTH_SALT', 'unique key here');
+  define('LOGGED_IN_SALT', 'unique key here');
+  define('NONCE_SALT', 'unique key here');
 }
 
-// Standard wp-config.php from here on down.
-define('AUTH_KEY', 'put your unique phrase here');
-define('SECURE_AUTH_KEY', 'put your unique phrase here');
-define('LOGGED_IN_KEY', 'put your unique phrase here');
-define('NONCE_KEY', 'put your unique phrase here');
-define('AUTH_SALT', 'put your unique phrase here');
-define('SECURE_AUTH_SALT', 'put your unique phrase here');
-define('LOGGED_IN_SALT', 'put your unique phrase here');
-define('NONCE_SALT', 'put your unique phrase here');
+////////////////////////////////////
+// Global WordPress Configuration //
+////////////////////////////////////
 $table_prefix = 'wp_';
 define('WPLANG', '');
 define('WP_DEBUG', false);
