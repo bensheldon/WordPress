@@ -8,8 +8,8 @@
 
 # Wordpress #
 ############
-wp-config-local.php'
-wp-content/uploads/
+wp-config-local.php
+wp-content/uploads
 wp-content/blogs.dir/
 wp-content/upgrade/
 wp-content/backup-db/
