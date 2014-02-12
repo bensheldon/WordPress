@@ -17,16 +17,9 @@ if (isset($_ENV['PANTHEON_ENVIRONMENT'])) {
   define('SECURE_AUTH_SALT', $_ENV['SECURE_AUTH_SALT']);
   define('LOGGED_IN_SALT', $_ENV['LOGGED_IN_SALT']);
   define('NONCE_SALT', $_ENV['NONCE_SALT']);
+  define('COOKIEHASH', md5($_ENV['AUTH_KEY']));
 
   // Additional tweaks to run well on Pantheon
-  // Secure cookie names
-  $salt = md5($_ENV['AUTH_KEY']);
-  define('USER_COOKIE', 'SESSuser' . $salt);
-  define('PASS_COOKIE', 'SESSpass' . $salt);
-  define('AUTH_COOKIE', 'SESSauth' . $salt);
-  define('SECURE_AUTH_COOKIE', 'SESSsecure' . $salt);
-  define('LOGGED_IN_COOKIE', 'SESSloggedin' . $salt);
-  define('TEST_COOKIE', 'SESStest' . $salt);
   if (isset($_SERVER['HTTP_HOST'])) {
     define('WP_HOME', 'http://' . $_SERVER['HTTP_HOST']);
     define('WP_SITEURL', 'http://' . $_SERVER['HTTP_HOST']);
